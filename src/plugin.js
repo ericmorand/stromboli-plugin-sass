@@ -1,4 +1,4 @@
-const StromboliPlugin = require('../plugin');
+const StromboliPlugin = require('stromboli-plugin');
 
 var log = require('log-util');
 var merge = require('merge');
@@ -6,7 +6,7 @@ var path = require('path');
 
 var Promise = require('promise');
 
-class ScssPlugin extends StromboliPlugin {
+class Plugin extends StromboliPlugin {
   /**
    *
    * @param file {String}
@@ -24,7 +24,7 @@ class ScssPlugin extends StromboliPlugin {
         file: file,
         outFile: 'index',
         functions: {
-          'stromboli-url($url, $base)': (url, base) => {
+          'local-url($url, $base)': (url, base) => {
             var Url = require('url');
             var rewrotePath = path.join(base.getValue(), url.getValue());
 
@@ -102,4 +102,4 @@ class ScssPlugin extends StromboliPlugin {
   };
 }
 
-module.exports = ScssPlugin;
+module.exports = Plugin;
