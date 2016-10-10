@@ -70,6 +70,8 @@ class Plugin extends StromboliPlugin {
           });
         },
         function (err) {
+          renderResult.addDependency(err.file);
+
           return Promise.reject(err);
         }
       );
