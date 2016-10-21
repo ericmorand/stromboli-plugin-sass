@@ -1,5 +1,6 @@
 const StromboliPlugin = require('stromboli-plugin');
 
+var fs = require('fs-extra');
 var log = require('log-util');
 var merge = require('merge');
 var path = require('path');
@@ -18,90 +19,105 @@ class Plugin extends StromboliPlugin {
     var sass = require('node-sass');
     var sassRender = Promise.denodeify(sass.render);
 
-    var sassConfig = merge.recursive({
-      file: file,
-      outFile: 'index',
-      importer: function (url, prev, done) {
-        var importPath = path.resolve(path.join(path.dirname(prev), url));
-
-        if (!path.extname(importPath)) {
-          importPath += '.scss';
-        }
-
-        that.readFile(importPath).then(
-          function (data) {
-            var basePath = path.dirname(path.relative(path.resolve('.'), importPath));
-            var regExp = /[:,\s]\s*url\s*\(\s*(?:'(\S*?)'|"(\S*?)"|((?:\\\s|\\\)|\\"|\\'|\S)*?))\s*\)/gi; // @see https://regex101.com/r/1ot3Ax/2
-
-            var matches = null;
-
-            while (matches = regExp.exec(data)) {
-              var match = matches[0];
-              var resourceUrl = matches[1] || matches[2];
-
-              data = data.replace(match, ': stromboli-plugin-sass-url("' + resourceUrl + '", "' + basePath + '")');
-            }
-
-            done({
-              file: importPath,
-              contents: data
-            });
-          }
-        );
-      },
-      functions: {
-        'stromboli-plugin-sass-url($url, $base)': function (url, base) {
-          var Url = require('url');
-          var rewrotePath = path.join(base.getValue(), url.getValue());
-
-          renderResult.addDependency(path.resolve(Url.parse(rewrotePath).pathname))
-
-          return new sass.types.String('url("' + rewrotePath + '")');
-        }
+    var replaceUrls = function (filePath) {
+      if (!path.extname(filePath)) {
+        filePath += '.scss';
       }
-    }, that.config);
 
-    // sass render
-    return sassRender(sassConfig).then(
-      function (sassRenderResult) { // sass render success
-        var includedFiles = sassRenderResult.stats.includedFiles;
+      return that.readFile(filePath).then(
+        function (data) {
+          var basePath = path.dirname(path.relative(path.resolve('.'), filePath));
+          var regExp = /[:,\s]\s*url\s*\(\s*(?:'(\S*?)'|"(\S*?)"|((?:\\\s|\\\)|\\"|\\'|\S)*?))\s*\)/gi; // @see https://regex101.com/r/1ot3Ax/2
 
-        return Promise.all(includedFiles.map(function (includedFile) {
-          renderResult.addDependency(includedFile);
+          var matches = null;
 
-          return includedFile;
-        })).then(function () {
-          var processConfig = {
-            from: path.join('index')
-          };
+          while (matches = regExp.exec(data)) {
+            var match = matches[0];
+            var resourceUrl = matches[1] || matches[2];
 
-          if (sassRenderResult.map) {
-            processConfig.map = {
-              prev: sassRenderResult.map.toString(),
-              inline: false
-            };
+            data = data.replace(match, ': stromboli-plugin-sass-url("' + resourceUrl + '", "' + basePath + '")');
           }
 
-          return that.postprocessCss(sassRenderResult.css, processConfig).then(
-            function (result) {
-              renderResult.addBinary('index.css', result.css);
+          return {
+            file: filePath,
+            contents: data
+          };
+        }
+      );
+    };
 
-              if (result.map) {
-                renderResult.addBinary('index.map', result.map.toString());
+    return replaceUrls(file).then(
+      function(data) {
+        renderResult.addDependency(file);
+
+        var sassConfig = merge.recursive({
+          file: data.file,
+          data: data.contents,
+          outFile: 'index',
+          importer: function (url, prev, done) {
+            var importPath = path.resolve(path.join(path.dirname(prev), url));
+
+            replaceUrls(importPath).then(
+              function(data) {
+                done(data);
+              }
+            );
+          },
+          functions: {
+            'stromboli-plugin-sass-url($url, $base)': function (url, base) {
+              var Url = require('url');
+              var rewrotePath = path.join(base.getValue(), url.getValue());
+
+              renderResult.addDependency(path.resolve(Url.parse(rewrotePath).pathname))
+
+              return new sass.types.String('url("' + rewrotePath + '")');
+            }
+          }
+        }, that.config);
+
+        // sass render
+        return sassRender(sassConfig).then(
+          function (sassRenderResult) { // sass render success
+            var includedFiles = sassRenderResult.stats.includedFiles;
+
+            return Promise.all(includedFiles.map(function (includedFile) {
+              renderResult.addDependency(includedFile);
+
+              return includedFile;
+            })).then(function () {
+              var processConfig = {
+                from: path.join('index')
+              };
+
+              if (sassRenderResult.map) {
+                processConfig.map = {
+                  prev: sassRenderResult.map.toString(),
+                  inline: false
+                };
               }
 
-              return renderResult;
-            }
-          );
-        });
-      },
-      function (err) {
-        var error = {
-          file: err.file,
-          message: err.message
-        };
+              return that.postprocessCss(sassRenderResult.css, processConfig).then(
+                function (result) {
+                  renderResult.addBinary('index.css', result.css);
 
-        return Promise.reject(error);
+                  if (result.map) {
+                    renderResult.addBinary('index.map', result.map.toString());
+                  }
+
+                  return renderResult;
+                }
+              );
+            });
+          },
+          function (err) {
+            var error = {
+              file: err.file,
+              message: err.message
+            };
+
+            return Promise.reject(error);
+          }
+        );
       }
     );
   };
