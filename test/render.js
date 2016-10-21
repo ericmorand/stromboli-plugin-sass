@@ -48,32 +48,6 @@ test('render with map', function (t) {
   );
 });
 
-test('render with postcss', function (t) {
-  var plugin = new Plugin({
-    postcss: {
-      plugins: [
-        require('cssnano')()
-      ]
-    }
-  }, 'sass', 'index.scss');
-
-  t.plan(1);
-
-  var renderResult = new RenderResult();
-
-  return plugin.render(path.resolve('test/render/postcss/index.scss'), renderResult).then(
-    function(renderResult) {
-      var render = renderResult.getBinaries()[0].data;
-      var awaited = '.render-with-postcss{color:tomato}';
-
-      t.equal(render, awaited);
-    },
-    function(err) {
-      t.fail(err);
-    }
-  );
-});
-
 test('render with error', function (t) {
   var plugin = new Plugin({}, 'sass', 'index.scss');
 
