@@ -78,19 +78,15 @@ class Plugin extends StromboliPlugin {
     );
   };
 
-  getPostCSSProcessors() {
-    return [];
-  }
-
   postprocessCss(css, config) {
     var that = this;
+    var plugins = [];
 
-    var postcss = require('postcss')();
-    var processors = this.getPostCSSProcessors();
+    if (that.config.postcss && that.config.postcss.plugins) {
+      plugins = that.config.postcss.plugins;
+    }
 
-    processors.forEach(function (processor) {
-      postcss.use(processor);
-    });
+    var postcss = require('postcss')(plugins);
 
     return postcss.process(css, config);
   };
