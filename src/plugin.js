@@ -21,8 +21,36 @@ class Plugin extends StromboliPlugin {
     var sassConfig = merge.recursive({
       file: file,
       outFile: 'index',
+      importer: function (url, prev, done) {
+        var importPath = path.resolve(path.join(path.dirname(prev), url));
+
+        if (!path.extname(importPath)) {
+          importPath += '.scss';
+        }
+
+        that.readFile(importPath).then(
+          function (data) {
+            var basePath = path.dirname(path.relative(path.resolve('.'), importPath));
+            var regExp = /[:,\s]\s*url\s*\(\s*(?:'(\S*?)'|"(\S*?)"|((?:\\\s|\\\)|\\"|\\'|\S)*?))\s*\)/gi; // @see https://regex101.com/r/1ot3Ax/2
+
+            var matches = null;
+
+            while (matches = regExp.exec(data)) {
+              var match = matches[0];
+              var resourceUrl = matches[1] || matches[2];
+
+              data = data.replace(match, ': stromboli-plugin-sass-url("' + resourceUrl + '", "' + basePath + '")');
+            }
+
+            done({
+              file: importPath,
+              contents: data
+            });
+          }
+        );
+      },
       functions: {
-        'local-url($url, $base)': function (url, base) {
+        'stromboli-plugin-sass-url($url, $base)': function (url, base) {
           var Url = require('url');
           var rewrotePath = path.join(base.getValue(), url.getValue());
 
@@ -78,19 +106,15 @@ class Plugin extends StromboliPlugin {
     );
   };
 
-  getPostCSSProcessors() {
-    return [];
-  }
-
   postprocessCss(css, config) {
     var that = this;
+    var plugins = [];
 
-    var postcss = require('postcss')();
-    var processors = this.getPostCSSProcessors();
+    if (that.config.postcss && that.config.postcss.plugins) {
+      plugins = that.config.postcss.plugins;
+    }
 
-    processors.forEach(function (processor) {
-      postcss.use(processor);
-    });
+    var postcss = require('postcss')(plugins);
 
     return postcss.process(css, config);
   };
