@@ -1,0 +1,9 @@
+@import "import";
+
+.test {
+  background: url("images/background.png");
+
+  .inner {
+    background: url("../../images/background.png");
+  }
+}
