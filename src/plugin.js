@@ -47,7 +47,7 @@ class Plugin extends StromboliPlugin {
     };
 
     return replaceUrls(file).then(
-      function(data) {
+      function (data) {
         renderResult.addDependency(file);
 
         var sassConfig = merge.recursive({
@@ -58,7 +58,7 @@ class Plugin extends StromboliPlugin {
             var importPath = path.resolve(path.join(path.dirname(prev), url));
 
             replaceUrls(importPath).then(
-              function(data) {
+              function (data) {
                 done(data);
               }
             );
@@ -85,28 +85,13 @@ class Plugin extends StromboliPlugin {
 
               return includedFile;
             })).then(function () {
-              var processConfig = {
-                from: path.join('index')
-              };
+              renderResult.addBinary('index.css', sassRenderResult.css.toString());
 
               if (sassRenderResult.map) {
-                processConfig.map = {
-                  prev: sassRenderResult.map.toString(),
-                  inline: false
-                };
+                renderResult.addBinary('index.map', sassRenderResult.map.toString());
               }
 
-              return that.postprocessCss(sassRenderResult.css, processConfig).then(
-                function (result) {
-                  renderResult.addBinary('index.css', result.css);
-
-                  if (result.map) {
-                    renderResult.addBinary('index.map', result.map.toString());
-                  }
-
-                  return renderResult;
-                }
-              );
+              return renderResult;
             });
           },
           function (err) {
@@ -120,19 +105,6 @@ class Plugin extends StromboliPlugin {
         );
       }
     );
-  };
-
-  postprocessCss(css, config) {
-    var that = this;
-    var plugins = [];
-
-    if (that.config.postcss && that.config.postcss.plugins) {
-      plugins = that.config.postcss.plugins;
-    }
-
-    var postcss = require('postcss')(plugins);
-
-    return postcss.process(css, config);
   };
 }
 
