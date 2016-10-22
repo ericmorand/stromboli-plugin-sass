@@ -1,13 +1,15 @@
-const StromboliPlugin = require('stromboli-plugin');
+const fs = require('fs-extra');
+const merge = require('merge');
+const path = require('path');
 
-var fs = require('fs-extra');
-var log = require('log-util');
-var merge = require('merge');
-var path = require('path');
+const Promise = require('promise');
+const readFile = Promise.denodeify(fs.readFile);
 
-var Promise = require('promise');
+class Plugin {
+  constructor(config) {
+    this.config = config || {};
+  }
 
-class Plugin extends StromboliPlugin {
   /**
    *
    * @param file {String}
@@ -16,16 +18,19 @@ class Plugin extends StromboliPlugin {
    */
   render(file, renderResult) {
     var that = this;
-    var sass = require('node-sass');
-    var sassRender = Promise.denodeify(sass.render);
+
+    const sass = require('node-sass');
+    const sassRender = Promise.denodeify(sass.render);
 
     var replaceUrls = function (filePath) {
       if (!path.extname(filePath)) {
         filePath += '.scss';
       }
 
-      return that.readFile(filePath).then(
+      return readFile(filePath).then(
         function (data) {
+          data = data.toString();
+
           var basePath = path.dirname(path.relative(path.resolve('.'), filePath));
           var regExp = /[:,\s]\s*url\s*\(\s*(?:'(\S*?)'|"(\S*?)"|((?:\\\s|\\\)|\\"|\\'|\S)*?))\s*\)/gi; // @see https://regex101.com/r/1ot3Ax/2
 

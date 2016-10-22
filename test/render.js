@@ -5,7 +5,7 @@ const path = require('path');
 const fs = require('fs');
 
 test('render', function (t) {
-  var plugin = new Plugin({}, 'sass', 'index.scss');
+  var plugin = new Plugin();
 
   t.plan(3);
 
@@ -31,7 +31,7 @@ test('render with map', function (t) {
   var plugin = new Plugin({
     sourceMap: true,
     sourceComments: true
-  }, 'sass', 'index.scss');
+  });
 
   t.plan(2);
 
@@ -49,7 +49,7 @@ test('render with map', function (t) {
 });
 
 test('render with error', function (t) {
-  var plugin = new Plugin({}, 'sass', 'index.scss');
+  var plugin = new Plugin();
 
   t.plan(1);
 
