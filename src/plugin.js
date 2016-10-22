@@ -1,4 +1,4 @@
-const fs = require('fs-extra');
+const fs = require('fs');
 const merge = require('merge');
 const path = require('path');
 
