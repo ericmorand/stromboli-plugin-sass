@@ -8,8 +8,7 @@
   },
   "author": "Eric MORAND",
   "dependencies": {
-    "node-sass": "^3.10.0",
-    "stromboli-plugin": "^0.1.0"
+    "node-sass": "^3.10.0"
   },
   "repository": "ericmorand/stromboli-plugin-sass",
   "license": "Apache-2.0",
