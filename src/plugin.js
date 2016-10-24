@@ -26,7 +26,21 @@ class Plugin {
         filePath += '.scss';
       }
 
-      var data = fs.readFileSync(filePath).toString();
+      try {
+        var data = fs.readFileSync(filePath).toString();
+      }
+      catch (err) {
+        // try with an "_"
+        var basename = path.basename(filePath);
+        var dirname = path.dirname(filePath);
+
+        basename = '_' + basename;
+
+        filePath = path.join(dirname, basename);
+
+        data = fs.readFileSync(filePath).toString();
+      }
+
       var basePath = path.dirname(path.relative(path.resolve('.'), filePath));
       var regExp = /[:,\s]\s*url\s*\(\s*(?:'(\S*?)'|"(\S*?)"|((?:\\\s|\\\)|\\"|\\'|\S)*?))\s*\)/gi; // @see https://regex101.com/r/1ot3Ax/2
 
