@@ -13,7 +13,7 @@ test('render', function (t) {
 
   return plugin.render(path.resolve('test/render/valid/index.scss'), renderResult).then(
     function(renderResult) {
-      t.equal(renderResult.getDependencies().size, 4);
+      t.equal(renderResult.getDependencies().size, 5);
       t.equal(renderResult.getBinaries().length, 1);
 
       var render = renderResult.getBinaries()[0].data;
