@@ -42,7 +42,7 @@ class Plugin {
       }
 
       var basePath = path.dirname(path.relative(path.resolve('.'), filePath));
-      var regExp = /[:,\s]\s*url\s*\(\s*(?:'(\S*?)'|"(\S*?)"|((?:\\\s|\\\)|\\"|\\'|\S)*?))\s*\)/gi; // @see https://regex101.com/r/1ot3Ax/2
+      var regExp = /\s*url\s*\(\s*(?:'(\S*?)'|"(\S*?)"|((?:\\\s|\\\)|\\"|\\'|\S)*?))\s*\)/gi; // @see https://regex101.com/r/1ot3Ax/3
 
       var matches = null;
 
@@ -50,7 +50,7 @@ class Plugin {
         var match = matches[0];
         var resourceUrl = matches[1] || matches[2];
 
-        data = data.replace(match, ': stromboli-plugin-sass-url("' + resourceUrl + '", "' + basePath + '")');
+        data = data.replace(match, ' stromboli-plugin-sass-url("' + resourceUrl + '", "' + basePath + '")');
       }
 
       return {
