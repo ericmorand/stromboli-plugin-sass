@@ -5,6 +5,6 @@
   background: url("images/background.png");
 
   .inner {
-    background: url("../../images/background.png");
+    background: transparent url("../../images/background.png") no-repeat 100% 5px;
   }
 }

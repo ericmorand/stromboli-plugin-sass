@@ -17,7 +17,7 @@ test('render', function (t) {
       t.equal(renderResult.getBinaries().length, 1);
 
       var render = renderResult.getBinaries()[0].data;
-      var awaited = '.test {\n  background: url("test/render/valid/images/background.png"); }\n  .test .inner {\n    background: url("test/images/background.png"); }\n';
+      var awaited = '.test {\n  background: url("test/render/valid/images/background.png"); }\n  .test .inner {\n    background: transparent url("test/images/background.png") no-repeat 100% 5px; }\n';
 
       t.equal(render, awaited);
     },
