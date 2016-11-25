@@ -48,6 +48,73 @@ test('render with map', function (t) {
   );
 });
 
+test('render with embedded map', function (t) {
+  var plugin = new Plugin({
+    sourceMap: true,
+    sourceComments: true,
+    sourceMapEmbed: true
+  });
+
+  t.plan(2);
+
+  var renderResult = new RenderResult();
+
+  return plugin.render(path.resolve('test/render/map/index.scss'), renderResult).then(
+    function(renderResult) {
+      t.equal(renderResult.getDependencies().size, 1);
+      t.equal(renderResult.getBinaries().length, 1);
+    },
+    function(err) {
+      t.fail(err);
+    }
+  );
+});
+
+test('render with outFile', function (t) {
+  var plugin = new Plugin({
+    outFile: 'custom.css'
+  });
+
+  t.plan(3);
+
+  var renderResult = new RenderResult();
+
+  return plugin.render(path.resolve('test/render/map/index.scss'), renderResult).then(
+    function(renderResult) {
+      t.equal(renderResult.getDependencies().size, 1);
+      t.equal(renderResult.getBinaries().length, 1);
+      t.equal(renderResult.getBinaries()[0].name, 'custom.css');
+    },
+    function(err) {
+      t.fail(err);
+    }
+  );
+});
+
+test('render with outFile and map', function (t) {
+  var plugin = new Plugin({
+    sourceMap: true,
+    sourceComments: true,
+    outFile: 'custom.css'
+  });
+
+  t.plan(4);
+
+  var renderResult = new RenderResult();
+
+  return plugin.render(path.resolve('test/render/map/index.scss'), renderResult).then(
+    function(renderResult) {
+      t.equal(renderResult.getDependencies().size, 1);
+      t.equal(renderResult.getBinaries().length, 2);
+      t.equal(renderResult.getBinaries()[0].name, 'custom.css');
+      t.equal(renderResult.getBinaries()[1].name, 'custom.css.map');
+    },
+    function(err) {
+      t.fail(err);
+    }
+  );
+});
+
 test('render with error', function (t) {
   var plugin = new Plugin();
 

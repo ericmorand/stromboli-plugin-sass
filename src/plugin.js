@@ -66,7 +66,7 @@ class Plugin {
     var sassConfig = merge.recursive({
       file: data.file,
       data: data.contents,
-      outFile: 'index',
+      outFile: 'index.css',
       importer: function (url, prev, done) {
         var importPath = path.resolve(path.join(path.dirname(prev), url));
 
@@ -87,7 +87,7 @@ class Plugin {
     // sass render
     return sassRender(sassConfig).then(
       function (sassRenderResult) { // sass render success
-
+        var outFile = sassConfig.outFile || 'index.css';
         var includedFiles = sassRenderResult.stats.includedFiles;
 
         return Promise.all(includedFiles.map(function (includedFile) {
@@ -95,10 +95,10 @@ class Plugin {
 
           return includedFile;
         })).then(function () {
-          renderResult.addBinary('index.css', sassRenderResult.css.toString());
+          renderResult.addBinary(outFile, sassRenderResult.css.toString());
 
-          if (sassRenderResult.map) {
-            renderResult.addBinary('index.map', sassRenderResult.map.toString());
+          if (sassRenderResult.map && !sassConfig.sourceMapEmbed) {
+            renderResult.addBinary(outFile + '.map', sassRenderResult.map.toString());
           }
 
           return renderResult;
