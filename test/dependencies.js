@@ -20,3 +20,37 @@ test('font-face', function (t) {
     }
   );
 });
+
+test('missing import', function (t) {
+  var plugin = new Plugin();
+
+  t.plan(1);
+
+  var renderResult = new RenderResult();
+
+  return plugin.render(path.resolve('test/dependencies/missing/import/index.scss'), renderResult).then(
+    function() {
+      t.fail();
+    },
+    function(err) {
+      t.equal(renderResult.getDependencies().size, 1);
+    }
+  );
+});
+
+test('missing sub-import', function (t) {
+  var plugin = new Plugin();
+
+  t.plan(1);
+
+  var renderResult = new RenderResult();
+
+  return plugin.render(path.resolve('test/dependencies/missing/sub-import/index.scss'), renderResult).then(
+    function() {
+      t.fail();
+    },
+    function(err) {
+      t.equal(renderResult.getDependencies().size, 2);
+    }
+  );
+});
