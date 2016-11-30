@@ -70,7 +70,16 @@ class Plugin {
       importer: function (url, prev, done) {
         var importPath = path.resolve(path.join(path.dirname(prev), url));
 
-        return replaceUrls(importPath);
+        try {
+          var result = replaceUrls(importPath);
+        }
+        catch (err) {
+          renderResult.addDependency(prev);
+
+          return new Error(err.message);
+        }
+
+        return result;
       },
       functions: {
         'stromboli-plugin-sass-url($url, $base)': function (url, base) {
