@@ -41,6 +41,8 @@ class Plugin {
         data = fs.readFileSync(filePath).toString();
       }
 
+      renderResult.addDependency(filePath);
+
       var basePath = path.dirname(path.relative(path.resolve('.'), filePath));
       var regExp = /\s*url\s*\(\s*(?:'(\S*?)'|"(\S*?)"|((?:\\\s|\\\)|\\"|\\'|\S)*?))\s*\)/gi; // @see https://regex101.com/r/1ot3Ax/3
 

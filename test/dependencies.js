@@ -54,3 +54,20 @@ test('missing sub-import', function (t) {
     }
   );
 });
+
+test('mixin error', function (t) {
+  var plugin = new Plugin();
+
+  t.plan(1);
+
+  var renderResult = new RenderResult();
+
+  return plugin.render(path.resolve('test/dependencies/error/mixin/index.scss'), renderResult).then(
+    function() {
+      t.fail();
+    },
+    function(err) {
+      t.equal(renderResult.getDependencies().size, 2);
+    }
+  );
+});
