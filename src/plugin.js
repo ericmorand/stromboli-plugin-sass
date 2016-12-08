@@ -3,6 +3,7 @@ const merge = require('merge');
 const path = require('path');
 
 const Promise = require('promise');
+const Url = require('url');
 
 class Plugin {
   constructor(config) {
@@ -50,9 +51,16 @@ class Plugin {
 
       while (matches = regExp.exec(data)) {
         var match = matches[0];
-        var resourceUrl = matches[1] || matches[2];
+        var resourceUrl = Url.parse(matches[1] || matches[2]);
 
-        data = data.replace(match, ' stromboli-plugin-sass-url("' + resourceUrl + '", "' + basePath + '")');
+        try {
+          fs.statSync(path.join(basePath, resourceUrl.pathname));
+
+          data = data.replace(match, ' stromboli-plugin-sass-url("' + resourceUrl.href + '", "' + basePath + '")');
+        }
+        catch (err) {
+
+        }
       }
 
       return {
