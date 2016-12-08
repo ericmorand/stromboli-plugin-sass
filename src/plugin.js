@@ -51,16 +51,9 @@ class Plugin {
 
       while (matches = regExp.exec(data)) {
         var match = matches[0];
-        var resourceUrl = Url.parse(matches[1] || matches[2]);
+        var resourceUrl = matches[1] || matches[2];
 
-        try {
-          fs.statSync(path.join(basePath, resourceUrl.pathname));
-
-          data = data.replace(match, ' stromboli-plugin-sass-url("' + resourceUrl.href + '", "' + basePath + '")');
-        }
-        catch (err) {
-
-        }
+        data = data.replace(match, ' stromboli-plugin-sass-url("' + resourceUrl + '", "' + basePath + '")');
       }
 
       return {
@@ -95,8 +88,17 @@ class Plugin {
         'stromboli-plugin-sass-url($url, $base)': function (url, base) {
           var Url = require('url');
           var rewrotePath = path.join(base.getValue(), url.getValue());
+          var resourceUrl = Url.parse(rewrotePath);
+          var resolvedPath = path.resolve(resourceUrl.pathname);
 
-          renderResult.addDependency(path.resolve(Url.parse(rewrotePath).pathname))
+          try {
+            fs.statSync(resolvedPath);
+
+            renderResult.addDependency(resolvedPath)
+          }
+          catch (err) {
+            // that's OK, don't return the file as a dependency
+          }
 
           return new sass.types.String('url("' + rewrotePath + '")');
         }
