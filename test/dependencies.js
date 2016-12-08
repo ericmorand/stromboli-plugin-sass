@@ -55,6 +55,22 @@ test('missing sub-import', function (t) {
   );
 });
 
+test('data:image/svg+xml', function (t) {
+  var plugin = new Plugin();
+
+  t.plan(1);
+
+  var renderResult = new RenderResult();
+
+  return plugin.render(path.resolve('test/dependencies/svg/index.scss'), renderResult).then(
+    function(renderResult) {
+      t.equal(renderResult.getDependencies().size, 1);
+    },
+    function(err) {
+      t.fail(err);
+    }
+  );
+});
 test('mixin error', function (t) {
   var plugin = new Plugin();
 
