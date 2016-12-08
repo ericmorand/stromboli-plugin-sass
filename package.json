@@ -1,6 +1,6 @@
 {
   "name": "stromboli-plugin-sass",
-  "version": "0.7.3",
+  "version": "0.7.4",
   "description": "",
   "main": "src/plugin.js",
   "scripts": {
