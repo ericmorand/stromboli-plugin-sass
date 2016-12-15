@@ -128,7 +128,7 @@ class Plugin {
       function (err) {
         var error = {
           file: err.file,
-          message: err.message
+          message: err.formatted
         };
 
         return Promise.reject(error);
