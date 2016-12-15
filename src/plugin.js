@@ -44,7 +44,7 @@ class Plugin {
 
       renderResult.addDependency(filePath);
 
-      var basePath = path.dirname(path.relative(path.resolve('.'), filePath));
+      var basePath = path.dirname(path.relative(path.resolve('.'), filePath)).replace(/\\/g, '/');
       var regExp = /\s*url\s*\(\s*(?:'(\S*?)'|"(\S*?)"|((?:\\\s|\\\)|\\"|\\'|\S)*?))\s*\)/gi; // @see https://regex101.com/r/1ot3Ax/3
 
       var matches = null;
@@ -87,18 +87,29 @@ class Plugin {
       functions: {
         'stromboli-plugin-sass-url($url, $base)': function (url, base) {
           var Url = require('url');
-          var rewrotePath = path.join(base.getValue(), url.getValue());
-          var resourceUrl = Url.parse(rewrotePath);
-          var resolvedPath = path.resolve(resourceUrl.pathname);
+          var urlUrl = Url.parse(url.getValue());
+          var rewrotePath = null;
 
-          try {
-            fs.statSync(resolvedPath);
+          if (urlUrl.host) {
+            rewrotePath = url.getValue();
+          }
+          else {
+            rewrotePath = path.join(base.getValue(), url.getValue());
 
-            renderResult.addDependency(resolvedPath)
+            var resourceUrl = Url.parse(rewrotePath);
+            var resolvedPath = path.resolve(resourceUrl.pathname);
+
+            try {
+              fs.statSync(resolvedPath);
+
+              renderResult.addDependency(resolvedPath)
+            }
+            catch (err) {
+              // that's OK, don't return the file as a dependency
+            }
           }
-          catch (err) {
-            // that's OK, don't return the file as a dependency
-          }
+
+          rewrotePath = rewrotePath.replace(/\\/g, '/');
 
           return new sass.types.String('url("' + rewrotePath + '")');
         }

@@ -5,3 +5,7 @@
 .test .inner {
     background: transparent url(test/images/background.png) no-repeat 100% 5px
 }
+
+.test .remote {
+    background: transparent url("http://placehold.it/1024x768");
+}
