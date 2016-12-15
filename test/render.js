@@ -4,6 +4,8 @@ const test = require('tap').test;
 const path = require('path');
 const fs = require('fs');
 
+var cleanCSS = require('./_lib/clean-css');
+
 test('render', function (t) {
   var plugin = new Plugin();
 
@@ -17,9 +19,9 @@ test('render', function (t) {
       t.equal(renderResult.getBinaries().length, 1);
 
       var render = renderResult.getBinaries()[0].data;
-      var awaited = '.test {\n  background: url("test/render/valid/images/background.png"); }\n  .test .inner {\n    background: transparent url("test/images/background.png") no-repeat 100% 5px; }\n';
+      var expected = fs.readFileSync(path.resolve('test/render/valid/expected.css')).toString();
 
-      t.equal(render, awaited);
+      t.equal(cleanCSS(render), cleanCSS(expected));
     },
     function(err) {
       t.fail(err);
@@ -127,7 +129,9 @@ test('render with error', function (t) {
       t.fail();
     },
     function(err) {
-      t.pass(err);
+      var expected = fs.readFileSync(path.resolve('test/render/error/expected.txt')).toString();
+
+      t.equal(err.message, expected);
     }
   );
 });
