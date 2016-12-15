@@ -44,7 +44,7 @@ class Plugin {
 
       renderResult.addDependency(filePath);
 
-      var basePath = path.dirname(path.relative(path.resolve('.'), filePath));
+      var basePath = path.dirname(path.relative(path.resolve('.'), filePath)).replace(/\\/g, '/');
       var regExp = /\s*url\s*\(\s*(?:'(\S*?)'|"(\S*?)"|((?:\\\s|\\\)|\\"|\\'|\S)*?))\s*\)/gi; // @see https://regex101.com/r/1ot3Ax/3
 
       var matches = null;
@@ -108,6 +108,8 @@ class Plugin {
               // that's OK, don't return the file as a dependency
             }
           }
+
+          rewrotePath = rewrotePath.replace(/\\/g, '/');
 
           return new sass.types.String('url("' + rewrotePath + '")');
         }
