@@ -1,0 +1,7 @@
+.test {
+    background: url(test/render/valid/images/background.png)
+}
+
+.test .inner {
+    background: transparent url(test/images/background.png) no-repeat 100% 5px
+}
