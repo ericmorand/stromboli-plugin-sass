@@ -127,7 +127,9 @@ test('render with error', function (t) {
       t.fail();
     },
     function(err) {
-      t.pass(err);
+      var expected = fs.readFileSync(path.resolve('test/render/error/expected.txt')).toString();
+
+      t.equal(err.message, expected);
     }
   );
 });
