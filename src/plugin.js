@@ -1,6 +1,7 @@
 const fs = require('fs');
 const merge = require('merge');
 const path = require('path');
+const gonzales = require('gonzales-pe');
 
 const Promise = require('promise');
 const Url = require('url');
@@ -44,16 +45,22 @@ class Plugin {
 
       renderResult.addDependency(filePath);
 
-      var basePath = path.dirname(path.relative(path.resolve('.'), filePath)).replace(/\\/g, '/');
-      var regExp = /\s*url\s*\(\s*(?:'(\S*?)'|"(\S*?)"|((?:\\\s|\\\)|\\"|\\'|\S)*?))\s*\)/gi; // @see https://regex101.com/r/1ot3Ax/3
+      if (data) {
+        try {
+          var parseTree = gonzales.parse(data, {syntax: 'scss'});
+          var basePath = path.dirname(path.relative(path.resolve('.'), filePath)).replace(/\\/g, '/');
 
-      var matches = null;
+          parseTree.traverseByType('uri', function (node, i, parentNode) {
+            var contentNode = node.first('string');
 
-      while (matches = regExp.exec(data)) {
-        var match = matches[0];
-        var resourceUrl = matches[1] || matches[2];
+            contentNode.content = contentNode.content + ', "' + basePath + '"';
+          });
 
-        data = data.replace(match, ' stromboli-plugin-sass-url("' + resourceUrl + '", "' + basePath + '")');
+          data = parseTree.toString();
+        }
+        catch (err) {
+          // return data as-is
+        }
       }
 
       return {
@@ -85,7 +92,7 @@ class Plugin {
         return result;
       },
       functions: {
-        'stromboli-plugin-sass-url($url, $base)': function (url, base) {
+        'url($url, $base)': function (url, base) {
           var Url = require('url');
           var urlUrl = Url.parse(url.getValue());
           var rewrotePath = null;
