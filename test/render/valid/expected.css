@@ -9,3 +9,8 @@
 .test .remote {
     background: transparent url("http://placehold.it/1024x768");
 }
+
+.test .url-with-function {
+    background:transparent url(false.eot) no-repeat 100% 5px;
+}
+

@@ -1,6 +1,8 @@
 @import "import";
 @import "import2";
 
+$bootstrap-sass-asset-helper: false;
+
 .test {
   background: url("images/background.png");
 
@@ -10,5 +12,9 @@
 
   .remote {
     background: transparent url("http://placehold.it/1024x768");
+  }
+
+  .url-with-function {
+    background: transparent url(if($bootstrap-sass-asset-helper, 'true.eot', 'false.eot')) no-repeat 100% 5px;
   }
 }
