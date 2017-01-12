@@ -73,15 +73,13 @@ test('render with embedded map', function (t) {
 });
 
 test('render with outFile', function (t) {
-  var plugin = new Plugin({
-    outFile: 'custom.css'
-  });
+  var plugin = new Plugin();
 
   t.plan(3);
 
   var renderResult = new RenderResult();
 
-  return plugin.render(path.resolve('test/render/map/index.scss'), renderResult).then(
+  return plugin.render(path.resolve('test/render/map/index.scss'), renderResult, 'custom.css').then(
     function(renderResult) {
       t.equal(renderResult.getDependencies().size, 1);
       t.equal(renderResult.getBinaries().length, 1);
@@ -96,15 +94,14 @@ test('render with outFile', function (t) {
 test('render with outFile and map', function (t) {
   var plugin = new Plugin({
     sourceMap: true,
-    sourceComments: true,
-    outFile: 'custom.css'
+    sourceComments: true
   });
 
   t.plan(4);
 
   var renderResult = new RenderResult();
 
-  return plugin.render(path.resolve('test/render/map/index.scss'), renderResult).then(
+  return plugin.render(path.resolve('test/render/map/index.scss'), renderResult, 'custom.css').then(
     function(renderResult) {
       t.equal(renderResult.getDependencies().size, 1);
       t.equal(renderResult.getBinaries().length, 2);
