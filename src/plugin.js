@@ -17,11 +17,15 @@ class Plugin {
    * @param renderResult {StromboliRenderResult}
    * @returns {Promise}
    */
-  render(file, renderResult) {
+  render(file, renderResult, output) {
     var that = this;
 
     const sass = require('node-sass');
     const sassRender = Promise.denodeify(sass.render);
+
+    if (!output) {
+      output = 'index.css';
+    }
 
     var replaceUrls = function (filePath) {
       if (!path.extname(filePath)) {
@@ -53,7 +57,9 @@ class Plugin {
           parseTree.traverseByType('uri', function (node, i, parentNode) {
             var contentNode = node.first('string');
 
-            contentNode.content = contentNode.content + ', "' + basePath + '"';
+            if (contentNode) {
+              contentNode.content = contentNode.content + ', "' + basePath + '"';
+            }
           });
 
           data = parseTree.toString();
@@ -76,7 +82,6 @@ class Plugin {
     var sassConfig = merge.recursive({
       file: data.file,
       data: data.contents,
-      outFile: 'index.css',
       importer: function (url, prev, done) {
         var importPath = path.resolve(path.join(path.dirname(prev), url));
 
@@ -92,41 +97,48 @@ class Plugin {
         return result;
       },
       functions: {
-        'url($url, $base)': function (url, base) {
-          var Url = require('url');
-          var urlUrl = Url.parse(url.getValue());
-          var rewrotePath = null;
+        'url($url, $base: null)': function (url, base) {
+          if (base.getValue) {
+            var Url = require('url');
+            var urlUrl = Url.parse(url.getValue());
+            var rewrotePath = null;
 
-          if (urlUrl.host) {
-            rewrotePath = url.getValue();
+            if (urlUrl.host) {
+              rewrotePath = url.getValue();
+            }
+            else {
+              rewrotePath = path.join(base.getValue(), url.getValue());
+
+              var resourceUrl = Url.parse(rewrotePath);
+              var resolvedPath = path.resolve(resourceUrl.pathname);
+
+              try {
+                fs.statSync(resolvedPath);
+
+                renderResult.addDependency(resolvedPath)
+              }
+              catch (err) {
+                // that's OK, don't return the file as a dependency
+              }
+            }
+
+            rewrotePath = rewrotePath.replace(/\\/g, '/');
+
+            return new sass.types.String('url("' + rewrotePath + '")');
           }
           else {
-            rewrotePath = path.join(base.getValue(), url.getValue());
-
-            var resourceUrl = Url.parse(rewrotePath);
-            var resolvedPath = path.resolve(resourceUrl.pathname);
-
-            try {
-              fs.statSync(resolvedPath);
-
-              renderResult.addDependency(resolvedPath)
-            }
-            catch (err) {
-              // that's OK, don't return the file as a dependency
-            }
+            return new sass.types.String('url("' + url.getValue() + '")');
           }
-
-          rewrotePath = rewrotePath.replace(/\\/g, '/');
-
-          return new sass.types.String('url("' + rewrotePath + '")');
         }
       }
     }, that.config);
 
+    sassConfig.outFile = output;
+
     // sass render
     return sassRender(sassConfig).then(
       function (sassRenderResult) { // sass render success
-        var outFile = sassConfig.outFile || 'index.css';
+        var outFile = sassConfig.outFile;
         var includedFiles = sassRenderResult.stats.includedFiles;
 
         return Promise.all(includedFiles.map(function (includedFile) {
