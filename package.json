@@ -4,18 +4,22 @@
   "description": "",
   "main": "src/plugin.js",
   "scripts": {
+    "pretest": "npm prune && npm update",
     "test": "tap test/*.js --cov"
   },
   "author": "Eric MORAND",
   "dependencies": {
-    "gonzales-pe": "^4.0.3",
-    "node-sass": "^3.10.0"
+    "gonzales-pe": "^4.0.3"
   },
   "repository": "ericmorand/stromboli-plugin-sass",
   "license": "Apache-2.0",
   "devDependencies": {
     "clean-css": "^3.4.22",
     "stromboli": "^0.4.0",
-    "tap": "^7.1.2"
+    "tap": "^7.1.2",
+    "node-sass": "^3.0.0"
+  },
+  "peerDependencies": {
+    "node-sass": "^3.0.0"
   }
 }
