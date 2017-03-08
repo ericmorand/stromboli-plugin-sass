@@ -15,7 +15,7 @@
   "license": "Apache-2.0",
   "devDependencies": {
     "clean-css": "^3.4.22",
-    "stromboli": "^0.4.0",
+    "stromboli": "^0.10.0",
     "tap": "^7.1.2",
     "node-sass": "^3.0.0"
   },
