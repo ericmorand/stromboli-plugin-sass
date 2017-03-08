@@ -64,8 +64,20 @@ class Plugin {
           var parseTree = gonzales.parse(data, {syntax: 'scss'});
           var basePath = path.dirname(path.relative(path.resolve('.'), filePath)).replace(/\\/g, '/');
 
+          // parseTree.traverse(function (node) {
+          //   console.log(node.type);
+          // });
+
           parseTree.traverseByType('uri', function (node, i, parentNode) {
             var contentNode = node.first('string');
+
+            if (!contentNode) {
+              contentNode = node.first('raw');
+
+              if (contentNode) {
+                contentNode.content = '"' + contentNode.content + '"';
+              }
+            }
 
             if (contentNode) {
               contentNode.content = contentNode.content + ', "' + basePath + '"';

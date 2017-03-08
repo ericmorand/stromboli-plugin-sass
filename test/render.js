@@ -12,7 +12,7 @@ test('render', function (t) {
   
   return plugin.render(path.resolve('test/render/valid/index.scss')).then(
     function(renderResult) {
-      t.equal(renderResult.dependencies.length, 5);
+      t.equal(renderResult.dependencies.length, 6);
       t.equal(renderResult.binaries.length, 1);
 
       var render = renderResult.binaries[0].data;
