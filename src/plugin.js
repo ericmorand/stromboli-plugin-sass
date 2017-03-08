@@ -4,7 +4,6 @@ const path = require('path');
 const gonzales = require('gonzales-pe');
 
 const Promise = require('promise');
-const Url = require('url');
 
 class Plugin {
   constructor(config) {
@@ -14,10 +13,9 @@ class Plugin {
   /**
    *
    * @param file {String}
-   * @param renderResult {StromboliRenderResult}
    * @returns {Promise}
    */
-  render(file, renderResult, output) {
+  render(file, output) {
     var that = this;
 
     const sass = require('node-sass');
@@ -26,6 +24,18 @@ class Plugin {
     if (!output) {
       output = 'index.css';
     }
+
+    let renderResult = {
+      binaries: [],
+      dependencies: [],
+      error: null
+    };
+
+    var pushDependency = function(dependency) {
+      if (renderResult.dependencies.indexOf(dependency) < 0) {
+        renderResult.dependencies.push(dependency);
+      }
+    };
 
     var replaceUrls = function (filePath) {
       if (!path.extname(filePath)) {
@@ -47,7 +57,7 @@ class Plugin {
         data = fs.readFileSync(filePath).toString();
       }
 
-      renderResult.addDependency(filePath);
+      pushDependency(filePath);
 
       if (data) {
         try {
@@ -89,7 +99,7 @@ class Plugin {
 
     var data = replaceUrls(file);
 
-    renderResult.addDependency(file);
+    pushDependency(file);
 
     var sassConfig = merge.recursive({
       file: data.file,
@@ -101,7 +111,7 @@ class Plugin {
           var result = replaceUrls(importPath);
         }
         catch (err) {
-          renderResult.addDependency(prev);
+          pushDependency(prev);
 
           return new Error(err.message);
         }
@@ -127,7 +137,7 @@ class Plugin {
               try {
                 fs.statSync(resolvedPath);
 
-                renderResult.addDependency(resolvedPath)
+                pushDependency(resolvedPath);
               }
               catch (err) {
                 // that's OK, don't return the file as a dependency
@@ -154,26 +164,32 @@ class Plugin {
         var includedFiles = sassRenderResult.stats.includedFiles;
 
         return Promise.all(includedFiles.map(function (includedFile) {
-          renderResult.addDependency(includedFile);
+          pushDependency(includedFile);
 
           return includedFile;
         })).then(function () {
-          renderResult.addBinary(outFile, sassRenderResult.css.toString());
+          renderResult.binaries.push({
+            name: outFile,
+            data: sassRenderResult.css.toString()
+          });
 
           if (sassRenderResult.map && !sassConfig.sourceMapEmbed) {
-            renderResult.addBinary(outFile + '.map', sassRenderResult.map.toString());
+            renderResult.binaries.push({
+              name: outFile + '.map',
+              data: sassRenderResult.map.toString()
+            });
           }
 
           return renderResult;
         });
       },
       function (err) {
-        var error = {
+        renderResult.error = {
           file: err.file,
           message: err.formatted
         };
 
-        return Promise.reject(error);
+        return Promise.reject(renderResult);
       }
     );
   }
