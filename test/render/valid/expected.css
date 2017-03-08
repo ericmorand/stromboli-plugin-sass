@@ -10,7 +10,11 @@
     background: transparent url("http://placehold.it/1024x768");
 }
 
+.test .without-quote {
+    background: url(test/images/background-without-quote.png);
+}
+
 .test .url-with-function {
-    background:transparent url(false.eot) no-repeat 100% 5px;
+    background: transparent url(false.eot) no-repeat 100% 5px;
 }
 
