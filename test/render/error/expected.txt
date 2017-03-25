@@ -1,4 +1,0 @@
-Error: Invalid CSS after ".error {": expected "}", was ""
-        on line 1 of test/render/error/index.scss
->> .error {
-   -------^
