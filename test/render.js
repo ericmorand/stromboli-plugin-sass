@@ -72,8 +72,6 @@ test('render with outFile', function (t) {
   
   return plugin.render(path.resolve('test/render/map/index.scss'), 'custom.css').then(
     function(renderResult) {
-      console.log(renderResult.dependencies);
-
       t.equal(renderResult.dependencies.length, 1);
       t.equal(renderResult.binaries.length, 1);
       t.equal(renderResult.binaries[0].name, 'custom.css');
@@ -105,7 +103,7 @@ test('render with outFile and map', function (t) {
   );
 });
 
-test('render with error', function (t) {
+test('render with error in entry', function (t) {
   var plugin = new Plugin();
 
   return plugin.render(path.resolve('test/render/error/index.scss')).then(
@@ -113,10 +111,29 @@ test('render with error', function (t) {
       t.fail();
     },
     function(renderResult) {
-      var expected = fs.readFileSync(path.resolve('test/render/error/expected.txt')).toString();
-
+      t.same(renderResult.dependencies, [
+        path.resolve('test/render/error/index.scss')
+      ]);
       t.equal(renderResult.error.file, path.resolve('test/render/error/index.scss'));
-      t.equal(renderResult.error.message, expected);
+      t.ok(renderResult.error.message);
+    }
+  );
+});
+
+test('render with error in import', function (t) {
+  var plugin = new Plugin();
+
+  return plugin.render(path.resolve('test/render/error-in-import/index.scss')).then(
+    function(renderResult) {
+      t.fail();
+    },
+    function(renderResult) {
+      t.same(renderResult.dependencies, [
+        path.resolve('test/render/error-in-import/index.scss'),
+        path.resolve('test/render/error-in-import/bar.scss')
+      ]);
+      t.equal(renderResult.error.file, path.resolve('test/render/error-in-import/bar.scss'));
+      t.ok(renderResult.error.message);
     }
   );
 });
