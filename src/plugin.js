@@ -2,6 +2,7 @@ const fs = require('fs');
 const merge = require('merge');
 const path = require('path');
 const gonzales = require('gonzales-pe');
+const Url = require('url');
 
 const Promise = require('promise');
 
@@ -31,12 +32,6 @@ class Plugin {
       error: null
     };
 
-    var pushDependency = function(dependency) {
-      if (renderResult.dependencies.indexOf(dependency) < 0) {
-        renderResult.dependencies.push(dependency);
-      }
-    };
-
     var replaceUrls = function (filePath) {
       if (!path.extname(filePath)) {
         filePath += '.scss';
@@ -57,16 +52,10 @@ class Plugin {
         data = fs.readFileSync(filePath).toString();
       }
 
-      pushDependency(filePath);
-
       if (data) {
         try {
           var parseTree = gonzales.parse(data, {syntax: 'scss'});
           var basePath = path.dirname(path.relative(path.resolve('.'), filePath)).replace(/\\/g, '/');
-
-          // parseTree.traverse(function (node) {
-          //   console.log(node.type);
-          // });
 
           parseTree.traverseByType('uri', function (node, i, parentNode) {
             var contentNode = node.first('string');
@@ -99,29 +88,18 @@ class Plugin {
 
     var data = replaceUrls(file);
 
-    pushDependency(file);
-
     var sassConfig = merge.recursive({
       file: data.file,
       data: data.contents,
       importer: function (url, prev, done) {
         var importPath = path.resolve(path.join(path.dirname(prev), url));
-
-        try {
-          var result = replaceUrls(importPath);
-        }
-        catch (err) {
-          pushDependency(prev);
-
-          return new Error(err.message);
-        }
+        var result = replaceUrls(importPath);
 
         return result;
       },
       functions: {
         'url($url, $base: null)': function (url, base) {
           if (base.getValue) {
-            var Url = require('url');
             var urlUrl = Url.parse(url.getValue());
             var rewrotePath = null;
 
@@ -136,8 +114,6 @@ class Plugin {
 
               try {
                 fs.statSync(resolvedPath);
-
-                pushDependency(resolvedPath);
               }
               catch (err) {
                 // that's OK, don't return the file as a dependency
@@ -157,17 +133,16 @@ class Plugin {
 
     sassConfig.outFile = output;
 
-    // sass render
-    return sassRender(sassConfig).then(
-      function (sassRenderResult) { // sass render success
-        var outFile = sassConfig.outFile;
-        var includedFiles = sassRenderResult.stats.includedFiles;
+    return Promise.all([
+      that.getDependencies(file).then(
+        function (dependencies) {
+          renderResult.dependencies = dependencies;
+        }
+      ),
+      sassRender(sassConfig).then(
+        function (sassRenderResult) { // sass render success
+          var outFile = sassConfig.outFile;
 
-        return Promise.all(includedFiles.map(function (includedFile) {
-          pushDependency(includedFile);
-
-          return includedFile;
-        })).then(function () {
           renderResult.binaries.push({
             name: outFile,
             data: sassRenderResult.css.toString()
@@ -181,17 +156,51 @@ class Plugin {
           }
 
           return renderResult;
-        });
-      },
-      function (err) {
-        renderResult.error = {
-          file: err.file,
-          message: err.formatted
-        };
+        },
+        function (err) {
+          renderResult.error = {
+            file: err.file,
+            message: err.formatted
+          };
 
-        return Promise.reject(renderResult);
+          return Promise.reject(renderResult);
+        }
+      )
+    ]).then(
+      function () {
+        return renderResult;
       }
     );
+  }
+
+  getDependencies(file) {
+    const SSDeps = require('stylesheet-deps');
+
+    let dependencies = [];
+
+    return new Promise(function (fulfill, reject) {
+      let depper = new SSDeps({
+        syntax: 'scss'
+      });
+
+      depper.on('data', function (dep) {
+        dependencies.push(dep);
+      });
+
+      depper.on('missing', function (dep) {
+        dependencies.push(dep);
+      });
+
+      depper.on('error', function (err) {
+        // noop, we don't care but we have to catch this
+      });
+
+      depper.on('finish', function () {
+        fulfill(dependencies);
+      });
+
+      depper.end(file);
+    });
   }
 }
 

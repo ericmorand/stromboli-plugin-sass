@@ -8,11 +8,10 @@ var cleanCSS = require('./_lib/clean-css');
 test('render', function (t) {
   var plugin = new Plugin();
 
-  t.plan(3);
+  t.plan(2);
   
   return plugin.render(path.resolve('test/render/valid/index.scss')).then(
     function(renderResult) {
-      t.equal(renderResult.dependencies.length, 6);
       t.equal(renderResult.binaries.length, 1);
 
       var render = renderResult.binaries[0].data;

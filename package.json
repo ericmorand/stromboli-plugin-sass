@@ -5,11 +5,12 @@
   "main": "src/plugin.js",
   "scripts": {
     "pretest": "npm prune && npm update",
-    "test": "tap test/*.js --cov --100"
+    "test": "tap test/*.js --cov --reporter=spec --100"
   },
   "author": "Eric MORAND",
   "dependencies": {
-    "gonzales-pe": "^4.0.3"
+    "gonzales-pe": "^4.0.3",
+    "stylesheet-deps": "^1.0.2"
   },
   "repository": "ericmorand/stromboli-plugin-sass",
   "license": "Apache-2.0",
