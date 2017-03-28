@@ -141,26 +141,26 @@ class Plugin {
       ),
       sassRender(sassConfig).then(
         function (sassRenderResult) { // sass render success
-          var outFile = sassConfig.outFile;
-          var binary = sassRenderResult.css.toString();
-
-          renderResult.binaries.push({
-            name: outFile,
-            data: binary
-          });
-
-          if (sassRenderResult.map && !sassConfig.sourceMapEmbed) {
-            renderResult.binaries.push({
-              name: outFile + '.map',
-              data: sassRenderResult.map.toString()
-            });
-          }
-
-          return that.getDependencies(file, binary).then(
+          return that.getDependencies(sassRenderResult.css).then(
             function (dependencies) {
               dependencies.forEach(function(dependency) {
                 renderResult.dependencies.push(dependency);
               });
+
+              var outFile = sassConfig.outFile;
+              var binary = sassRenderResult.css.toString();
+
+              renderResult.binaries.push({
+                name: outFile,
+                data: binary
+              });
+
+              if (sassRenderResult.map && !sassConfig.sourceMapEmbed) {
+                renderResult.binaries.push({
+                  name: outFile + '.map',
+                  data: sassRenderResult.map.toString()
+                });
+              }
 
               return renderResult;
             }
@@ -182,10 +182,11 @@ class Plugin {
     );
   }
 
-  getDependencies(file, binary) {
+  getDependencies(file) {
     const SSDeps = require('stylesheet-deps');
 
     let dependencies = [];
+    let binary = (typeof file !== 'string');
 
     return new Promise(function (fulfill, reject) {
       let depper = new SSDeps({
@@ -209,7 +210,7 @@ class Plugin {
       });
 
       if (binary) {
-        depper.inline(binary, path.dirname(file));
+        depper.inline(file, process.cwd());
       }
       else {
         depper.write(file);

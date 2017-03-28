@@ -16,12 +16,12 @@ test('render', function (t) {
         path.resolve('test/render/valid/index.scss'),
         path.resolve('test/render/valid/_import2.scss'),
         path.resolve('test/render/valid/import.scss'),
-        path.resolve('test/render/valid/false.eot'),
-        path.resolve('test/render/valid/test/images/background.png'),
-        path.resolve('test/render/valid/test/images/foo.png'),
-        path.resolve('test/render/valid/test/images/bar.png'),
-        path.resolve('test/render/valid/test/images/background-without-quote.png'),
-        path.resolve('test/render/valid/test/render/valid/images/background.png'),
+        path.resolve('false.eot'),
+        path.resolve('test/render/valid/images/background.png'),
+        path.resolve('test/images/foo.png'),
+        path.resolve('test/images/bar.png'),
+        path.resolve('test/images/background-without-quote.png'),
+        path.resolve('test/images/background.png'),
         'http://placehold.it/1024x768'
       ].sort());
 
