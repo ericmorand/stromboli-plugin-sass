@@ -12,9 +12,7 @@ tap.test('getDependencies', function (test) {
       function (results) {
         test.same(results.sort(), [
           path.resolve('test/get-dependencies/valid/index.scss'),
-          path.resolve('test/get-dependencies/valid/foo.scss'),
-          path.resolve('test/get-dependencies/valid/foo.png'),
-          'http://foo.bar/foo.png'
+          path.resolve('test/get-dependencies/valid/foo.scss')
         ].sort());
 
         test.end();

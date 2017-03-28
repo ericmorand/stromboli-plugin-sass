@@ -21,4 +21,12 @@ $bootstrap-sass-asset-helper: false;
   .url-with-function {
     background: transparent url(if($bootstrap-sass-asset-helper, 'true.eot', 'false.eot')) no-repeat 100% 5px;
   }
+
+  $items: (foo, bar);
+
+  @each $item in $items {
+    .#{$item} {
+      background: url("../../images/#{$item}.png");
+    }
+  }
 }
