@@ -49,7 +49,8 @@ tap.test('getDependencies', function (test) {
       function (results) {
         test.same(results.sort(), [
           path.resolve('test/get-dependencies/missing/index.scss'),
-          path.resolve('test/get-dependencies/missing/foo.scss')
+          path.resolve('test/get-dependencies/missing/foo.scss'),
+          path.resolve('test/get-dependencies/missing/_foo.scss')
         ].sort());
 
         test.end();
