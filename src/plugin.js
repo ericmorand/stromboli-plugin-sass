@@ -142,10 +142,11 @@ class Plugin {
       sassRender(sassConfig).then(
         function (sassRenderResult) { // sass render success
           var outFile = sassConfig.outFile;
+          var binary = sassRenderResult.css.toString();
 
           renderResult.binaries.push({
             name: outFile,
-            data: sassRenderResult.css.toString()
+            data: binary
           });
 
           if (sassRenderResult.map && !sassConfig.sourceMapEmbed) {
@@ -155,7 +156,15 @@ class Plugin {
             });
           }
 
-          return renderResult;
+          return that.getDependencies(file, binary).then(
+            function (dependencies) {
+              dependencies.forEach(function(dependency) {
+                renderResult.dependencies.push(dependency);
+              });
+
+              return renderResult;
+            }
+          )
         },
         function (err) {
           renderResult.error = {
@@ -173,14 +182,14 @@ class Plugin {
     );
   }
 
-  getDependencies(file) {
+  getDependencies(file, binary) {
     const SSDeps = require('stylesheet-deps');
 
     let dependencies = [];
 
     return new Promise(function (fulfill, reject) {
       let depper = new SSDeps({
-        syntax: 'scss'
+        syntax: binary ? 'css' : 'scss'
       });
 
       depper.on('data', function (dep) {
@@ -199,7 +208,14 @@ class Plugin {
         fulfill(dependencies);
       });
 
-      depper.end(file);
+      if (binary) {
+        depper.inline(binary, path.dirname(file));
+      }
+      else {
+        depper.write(file);
+      }
+
+      depper.end();
     });
   }
 }

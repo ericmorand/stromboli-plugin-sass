@@ -18,3 +18,10 @@
     background: transparent url(false.eot) no-repeat 100% 5px;
 }
 
+.test .foo {
+    background: url("test/images/foo.png");
+}
+
+.test .bar {
+    background: url("test/images/bar.png");
+}

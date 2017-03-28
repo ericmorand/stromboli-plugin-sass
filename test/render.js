@@ -8,10 +8,23 @@ var cleanCSS = require('./_lib/clean-css');
 test('render', function (t) {
   var plugin = new Plugin();
 
-  t.plan(2);
-  
+  t.plan(3);
+
   return plugin.render(path.resolve('test/render/valid/index.scss')).then(
-    function(renderResult) {
+    function (renderResult) {
+      t.same(renderResult.dependencies.sort(), [
+        path.resolve('test/render/valid/index.scss'),
+        path.resolve('test/render/valid/_import2.scss'),
+        path.resolve('test/render/valid/import.scss'),
+        path.resolve('test/render/valid/false.eot'),
+        path.resolve('test/render/valid/test/images/background.png'),
+        path.resolve('test/render/valid/test/images/foo.png'),
+        path.resolve('test/render/valid/test/images/bar.png'),
+        path.resolve('test/render/valid/test/images/background-without-quote.png'),
+        path.resolve('test/render/valid/test/render/valid/images/background.png'),
+        'http://placehold.it/1024x768'
+      ].sort());
+
       t.equal(renderResult.binaries.length, 1);
 
       var render = renderResult.binaries[0].data;
@@ -19,7 +32,7 @@ test('render', function (t) {
 
       t.equal(cleanCSS(render), cleanCSS(expected));
     },
-    function(err) {
+    function (err) {
       t.fail(err);
     }
   );
@@ -32,13 +45,13 @@ test('render with map', function (t) {
   });
 
   t.plan(2);
-  
+
   return plugin.render(path.resolve('test/render/map/index.scss')).then(
-    function(renderResult) {
+    function (renderResult) {
       t.equal(renderResult.dependencies.length, 1);
       t.equal(renderResult.binaries.length, 2);
     },
-    function(err) {
+    function (err) {
       t.fail(err);
     }
   );
@@ -52,13 +65,13 @@ test('render with embedded map', function (t) {
   });
 
   t.plan(2);
-  
+
   return plugin.render(path.resolve('test/render/map/index.scss')).then(
-    function(renderResult) {
+    function (renderResult) {
       t.equal(renderResult.dependencies.length, 1);
       t.equal(renderResult.binaries.length, 1);
     },
-    function(err) {
+    function (err) {
       t.fail(err);
     }
   );
@@ -68,14 +81,14 @@ test('render with outFile', function (t) {
   var plugin = new Plugin();
 
   t.plan(3);
-  
+
   return plugin.render(path.resolve('test/render/map/index.scss'), 'custom.css').then(
-    function(renderResult) {
+    function (renderResult) {
       t.equal(renderResult.dependencies.length, 1);
       t.equal(renderResult.binaries.length, 1);
       t.equal(renderResult.binaries[0].name, 'custom.css');
     },
-    function(err) {
+    function (err) {
       t.fail(err);
     }
   );
@@ -88,15 +101,15 @@ test('render with outFile and map', function (t) {
   });
 
   t.plan(4);
-  
+
   return plugin.render(path.resolve('test/render/map/index.scss'), 'custom.css').then(
-    function(renderResult) {
+    function (renderResult) {
       t.equal(renderResult.dependencies.length, 1);
       t.equal(renderResult.binaries.length, 2);
       t.equal(renderResult.binaries[0].name, 'custom.css');
       t.equal(renderResult.binaries[1].name, 'custom.css.map');
     },
-    function(err) {
+    function (err) {
       t.fail(err);
     }
   );
@@ -106,10 +119,10 @@ test('render with error in entry', function (t) {
   var plugin = new Plugin();
 
   return plugin.render(path.resolve('test/render/error/index.scss')).then(
-    function(renderResult) {
+    function (renderResult) {
       t.fail();
     },
-    function(renderResult) {
+    function (renderResult) {
       t.same(renderResult.dependencies, [
         path.resolve('test/render/error/index.scss')
       ]);
@@ -123,10 +136,10 @@ test('render with error in import', function (t) {
   var plugin = new Plugin();
 
   return plugin.render(path.resolve('test/render/error-in-import/index.scss')).then(
-    function(renderResult) {
+    function (renderResult) {
       t.fail();
     },
-    function(renderResult) {
+    function (renderResult) {
       t.same(renderResult.dependencies, [
         path.resolve('test/render/error-in-import/index.scss'),
         path.resolve('test/render/error-in-import/bar.scss')
