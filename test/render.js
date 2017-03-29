@@ -149,3 +149,23 @@ test('render with error in import', function (t) {
     }
   );
 });
+
+test('render with duplicate import', function (t) {
+  var plugin = new Plugin();
+
+  t.plan(2);
+
+  return plugin.render(path.resolve('test/render/duplicate-import/index.scss')).then(
+    function (renderResult) {
+      t.same(renderResult.dependencies.sort(), [
+        path.resolve('test/render/duplicate-import/index.scss'),
+        path.resolve('test/render/duplicate-import/foo.scss')
+      ].sort());
+
+      t.equal(renderResult.binaries.length, 1);
+    },
+    function (err) {
+      t.fail(err);
+    }
+  );
+});
