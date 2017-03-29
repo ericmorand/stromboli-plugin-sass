@@ -86,14 +86,27 @@ class Plugin {
       };
     };
 
+    var cache = new Map();
     var data = replaceUrls(file);
 
     var sassConfig = merge.recursive({
       file: data.file,
       data: data.contents,
       importer: function (url, prev, done) {
-        var importPath = path.resolve(path.join(path.dirname(prev), url));
-        var result = replaceUrls(importPath);
+        let result = null;
+        let importPath = path.resolve(path.join(path.dirname(prev), url));
+
+        if (!cache.has(importPath)) {
+          result = replaceUrls(importPath);
+
+          cache.set(importPath, true);
+        }
+        else {
+          result = {
+            file: importPath,
+            contents: ''
+          };
+        }
 
         return result;
       },
@@ -143,7 +156,7 @@ class Plugin {
         function (sassRenderResult) { // sass render success
           return that.getDependencies(sassRenderResult.css).then(
             function (dependencies) {
-              dependencies.forEach(function(dependency) {
+              dependencies.forEach(function (dependency) {
                 renderResult.dependencies.push(dependency);
               });
 
@@ -199,10 +212,6 @@ class Plugin {
 
       depper.on('missing', function (dep) {
         dependencies.push(dep);
-      });
-
-      depper.on('error', function (err) {
-        // noop, we don't care but we have to catch this
       });
 
       depper.on('finish', function () {
