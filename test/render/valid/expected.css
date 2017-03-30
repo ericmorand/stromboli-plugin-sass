@@ -15,7 +15,7 @@
 }
 
 .test .url-with-function {
-    background: transparent url(false.eot) no-repeat 100% 5px;
+    background: transparent url(test/render/valid/false.eot) no-repeat 100% 5px;
 }
 
 .test .foo {

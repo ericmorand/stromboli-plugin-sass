@@ -9,16 +9,18 @@
   },
   "author": "Eric MORAND",
   "dependencies": {
-    "gonzales-pe": "^4.0.3",
-    "stylesheet-deps": "^1.1.0"
+    "css-region-rebase": "^1.0.0",
+    "merge": "^1.2.0",
+    "promise": "^7.1.1",
+    "stylesheet-deps": "^1.1.0",
+    "through2": "^2.0.3"
   },
   "repository": "ericmorand/stromboli-plugin-sass",
   "license": "Apache-2.0",
   "devDependencies": {
     "clean-css": "^3.4.22",
-    "stromboli": "^0.10.0",
-    "tap": "^7.1.2",
-    "node-sass": "^3.0.0"
+    "node-sass": "^3.0.0",
+    "tap": "^7.1.2"
   },
   "peerDependencies": {
     "node-sass": "^3.0.0"
