@@ -1,27 +1,27 @@
-.test {
-    background: url(test/render/valid/images/background.png)
-}
-
 .test .inner {
     background: transparent url(test/images/background.png) no-repeat 100% 5px
 }
 
 .test .remote {
-    background: transparent url("http://placehold.it/1024x768");
+    background: transparent url(http://placehold.it/1024x768)
 }
 
 .test .without-quote {
-    background: url(test/images/background-without-quote.png);
+    background: url(test/images/background-without-quote.png)
 }
 
 .test .url-with-function {
-    background: transparent url(test/render/valid/false.eot) no-repeat 100% 5px;
+    background: transparent url(test/render/valid/import/false.eot) no-repeat 100% 5px
 }
 
 .test .foo {
-    background: url("test/images/foo.png");
+    background: url(test/render/images/foo.png)
 }
 
 .test .bar {
-    background: url("test/images/bar.png");
+    background: url(test/render/images/bar.png)
+}
+
+.foo {
+    background: url(test/render/valid/images/local-background.png)
 }

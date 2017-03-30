@@ -83,8 +83,11 @@ class Plugin {
       };
     };
 
+    let data = customImporter(path.relative(path.resolve('.'), file), '.');
+
     var sassConfig = merge.recursive({
-      file: file,
+      file: data.file,
+      data: data.contents,
       importer: customImporter
     }, that.config);
 
@@ -105,6 +108,10 @@ class Plugin {
               format: 'stromboli-plugin-sass:'
             });
 
+            rebaser.on('rebase', function (rebased) {
+              renderResult.dependencies.push(path.resolve(rebased));
+            });
+
             let stream = new Readable();
 
             stream
@@ -115,29 +122,21 @@ class Plugin {
                 cb();
               }))
               .on('finish', function () {
-                that.getDependencies(binary).then(
-                  function (dependencies) {
-                    dependencies.forEach(function (dependency) {
-                      renderResult.dependencies.push(dependency);
-                    });
+                let outFile = sassConfig.outFile;
 
-                    let outFile = sassConfig.outFile;
+                renderResult.binaries.push({
+                  name: outFile,
+                  data: binary
+                });
 
-                    renderResult.binaries.push({
-                      name: outFile,
-                      data: binary
-                    });
+                if (sassRenderResult.map && !sassConfig.sourceMapEmbed) {
+                  renderResult.binaries.push({
+                    name: outFile + '.map',
+                    data: sassRenderResult.map.toString()
+                  });
+                }
 
-                    if (sassRenderResult.map && !sassConfig.sourceMapEmbed) {
-                      renderResult.binaries.push({
-                        name: outFile + '.map',
-                        data: sassRenderResult.map.toString()
-                      });
-                    }
-
-                    fulfill(renderResult);
-                  }
-                )
+                fulfill(renderResult);
               });
 
             stream.push(sassRenderResult.css);
@@ -165,39 +164,26 @@ class Plugin {
 
     let dependencies = [];
 
-    if (file) {
-      let binary = (typeof file !== 'string');
-
-      return new Promise(function (fulfill, reject) {
-        let depper = new SSDeps({
-          syntax: binary ? 'css' : 'scss'
-        });
-
-        depper.on('data', function (dep) {
-          dependencies.push(dep);
-        });
-
-        depper.on('missing', function (dep) {
-          dependencies.push(dep);
-        });
-
-        depper.on('finish', function () {
-          fulfill(dependencies);
-        });
-
-        if (binary) {
-          depper.inline(file, process.cwd());
-        }
-        else {
-          depper.write(file);
-        }
-
-        depper.end();
+    return new Promise(function (fulfill, reject) {
+      let depper = new SSDeps({
+        syntax: 'scss'
       });
-    }
-    else {
-      return Promise.resolve(dependencies);
-    }
+
+      depper.on('data', function (dep) {
+        dependencies.push(dep);
+      });
+
+      depper.on('missing', function (dep) {
+        dependencies.push(dep);
+      });
+
+      depper.on('finish', function () {
+        fulfill(dependencies);
+      });
+
+      depper.write(file);
+      depper.end();
+    });
   }
 }
 

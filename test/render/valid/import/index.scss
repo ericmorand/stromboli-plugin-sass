@@ -1,8 +1,6 @@
 .test {
-  background: url("images/background.png");
-
   .inner {
-    background: transparent url("../../images/background.png") no-repeat 100% 5px;
+    background: transparent url("../../../images/background.png") no-repeat 100% 5px;
   }
 
   .remote {
@@ -10,7 +8,7 @@
   }
 
   .without-quote {
-    background: url(../../images/background-without-quote.png);
+    background: url(../../../images/background-without-quote.png);
   }
 
   .url-with-function {
