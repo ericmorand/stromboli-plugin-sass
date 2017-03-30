@@ -1,0 +1,27 @@
+.test {
+  background: url("images/background.png");
+
+  .inner {
+    background: transparent url("../../images/background.png") no-repeat 100% 5px;
+  }
+
+  .remote {
+    background: transparent url("http://placehold.it/1024x768");
+  }
+
+  .without-quote {
+    background: url(../../images/background-without-quote.png);
+  }
+
+  .url-with-function {
+    background: transparent url(if($bootstrap-sass-asset-helper, 'true.eot', 'false.eot')) no-repeat 100% 5px;
+  }
+
+  $items: (foo, bar);
+
+  @each $item in $items {
+    .#{$item} {
+      background: url("../../images/#{$item}.png");
+    }
+  }
+}

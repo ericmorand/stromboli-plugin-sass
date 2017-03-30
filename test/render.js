@@ -16,7 +16,7 @@ test('render', function (t) {
         path.resolve('test/render/valid/index.scss'),
         path.resolve('test/render/valid/_import2.scss'),
         path.resolve('test/render/valid/import.scss'),
-        path.resolve('false.eot'),
+        path.resolve('test/render/valid/false.eot'),
         path.resolve('test/render/valid/images/background.png'),
         path.resolve('test/images/foo.png'),
         path.resolve('test/images/bar.png'),

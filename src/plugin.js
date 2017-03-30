@@ -1,8 +1,9 @@
 const fs = require('fs');
 const merge = require('merge');
 const path = require('path');
-const gonzales = require('gonzales-pe');
-const Url = require('url');
+const Rebaser = require('css-region-rebase');
+const Readable = require('stream').Readable;
+const through = require('through2');
 
 const Promise = require('promise');
 
@@ -14,10 +15,12 @@ class Plugin {
   /**
    *
    * @param file {String}
+   * @param output {String}
    * @returns {Promise}
    */
   render(file, output) {
     var that = this;
+
 
     const sass = require('node-sass');
     const sassRender = Promise.denodeify(sass.render);
@@ -32,116 +35,57 @@ class Plugin {
       error: null
     };
 
-    var replaceUrls = function (filePath) {
-      if (!path.extname(filePath)) {
-        filePath += '.scss';
+    let cache = new Map();
+
+    let customImporter = function (url, prev, done) {
+      let importPath = path.resolve(path.join(path.dirname(prev), url));
+
+      if (!path.extname(importPath)) {
+        importPath += '.scss';
       }
 
-      try {
-        var data = fs.readFileSync(filePath).toString();
-      }
-      catch (err) {
-        // try with an "_"
-        var basename = path.basename(filePath);
-        var dirname = path.dirname(filePath);
+      let contents = '';
 
-        basename = '_' + basename;
+      if (!cache.has(importPath)) {
+        cache.set(importPath, true);
 
-        filePath = path.join(dirname, basename);
-
-        data = fs.readFileSync(filePath).toString();
-      }
-
-      if (data) {
         try {
-          var parseTree = gonzales.parse(data, {syntax: 'scss'});
-          var basePath = path.dirname(path.relative(path.resolve('.'), filePath)).replace(/\\/g, '/');
-
-          parseTree.traverseByType('uri', function (node, i, parentNode) {
-            var contentNode = node.first('string');
-
-            if (!contentNode) {
-              contentNode = node.first('raw');
-
-              if (contentNode) {
-                contentNode.content = '"' + contentNode.content + '"';
-              }
-            }
-
-            if (contentNode) {
-              contentNode.content = contentNode.content + ', "' + basePath + '"';
-            }
-          });
-
-          data = parseTree.toString();
+          contents = fs.readFileSync(importPath).toString();
         }
         catch (err) {
-          // return data as-is
+          // try with an "_"
+          let basename = path.basename(importPath);
+          let dirname = path.dirname(importPath);
+
+          basename = '_' + basename;
+
+          importPath = path.join(dirname, basename);
+
+          contents = fs.readFileSync(importPath).toString();
+        }
+
+        if (contents.length) {
+          let basePath = path.dirname(path.relative(path.resolve('.'), importPath)).replace(/\\/g, '/');
+
+          let contentsComponents = [
+            '/* region stromboli-plugin-sass: ' + basePath + ' */',
+            contents,
+            '/* endregion stromboli-plugin-sass: ' + basePath + ' */'
+          ];
+
+          contents = contentsComponents.join('');
         }
       }
 
       return {
-        file: filePath,
-        contents: data
+        file: importPath,
+        contents: contents
       };
     };
 
-    var cache = new Map();
-    var data = replaceUrls(file);
-
     var sassConfig = merge.recursive({
-      file: data.file,
-      data: data.contents,
-      importer: function (url, prev, done) {
-        let result = null;
-        let importPath = path.resolve(path.join(path.dirname(prev), url));
-
-        if (!cache.has(importPath)) {
-          result = replaceUrls(importPath);
-
-          cache.set(importPath, true);
-        }
-        else {
-          result = {
-            file: importPath,
-            contents: ''
-          };
-        }
-
-        return result;
-      },
-      functions: {
-        'url($url, $base: null)': function (url, base) {
-          if (base.getValue) {
-            var urlUrl = Url.parse(url.getValue());
-            var rewrotePath = null;
-
-            if (urlUrl.host) {
-              rewrotePath = url.getValue();
-            }
-            else {
-              rewrotePath = path.join(base.getValue(), url.getValue());
-
-              var resourceUrl = Url.parse(rewrotePath);
-              var resolvedPath = path.resolve(resourceUrl.pathname);
-
-              try {
-                fs.statSync(resolvedPath);
-              }
-              catch (err) {
-                // that's OK, don't return the file as a dependency
-              }
-            }
-
-            rewrotePath = rewrotePath.replace(/\\/g, '/');
-
-            return new sass.types.String('url("' + rewrotePath + '")');
-          }
-          else {
-            return new sass.types.String('url("' + url.getValue() + '")');
-          }
-        }
-      }
+      file: file,
+      importer: customImporter
     }, that.config);
 
     sassConfig.outFile = output;
@@ -154,30 +98,51 @@ class Plugin {
       ),
       sassRender(sassConfig).then(
         function (sassRenderResult) { // sass render success
-          return that.getDependencies(sassRenderResult.css).then(
-            function (dependencies) {
-              dependencies.forEach(function (dependency) {
-                renderResult.dependencies.push(dependency);
+          return new Promise(function (fulfill, reject) {
+            let binary = '';
+
+            let rebaser = new Rebaser({
+              format: 'stromboli-plugin-sass:'
+            });
+
+            let stream = new Readable();
+
+            stream
+              .pipe(rebaser)
+              .pipe(through(function (chunk, enc, cb) {
+                binary = chunk;
+
+                cb();
+              }))
+              .on('finish', function () {
+                that.getDependencies(binary).then(
+                  function (dependencies) {
+                    dependencies.forEach(function (dependency) {
+                      renderResult.dependencies.push(dependency);
+                    });
+
+                    let outFile = sassConfig.outFile;
+
+                    renderResult.binaries.push({
+                      name: outFile,
+                      data: binary
+                    });
+
+                    if (sassRenderResult.map && !sassConfig.sourceMapEmbed) {
+                      renderResult.binaries.push({
+                        name: outFile + '.map',
+                        data: sassRenderResult.map.toString()
+                      });
+                    }
+
+                    fulfill(renderResult);
+                  }
+                )
               });
 
-              var outFile = sassConfig.outFile;
-              var binary = sassRenderResult.css.toString();
-
-              renderResult.binaries.push({
-                name: outFile,
-                data: binary
-              });
-
-              if (sassRenderResult.map && !sassConfig.sourceMapEmbed) {
-                renderResult.binaries.push({
-                  name: outFile + '.map',
-                  data: sassRenderResult.map.toString()
-                });
-              }
-
-              return renderResult;
-            }
-          )
+            stream.push(sassRenderResult.css);
+            stream.push(null);
+          });
         },
         function (err) {
           renderResult.error = {
@@ -199,34 +164,40 @@ class Plugin {
     const SSDeps = require('stylesheet-deps');
 
     let dependencies = [];
-    let binary = (typeof file !== 'string');
 
-    return new Promise(function (fulfill, reject) {
-      let depper = new SSDeps({
-        syntax: binary ? 'css' : 'scss'
+    if (file) {
+      let binary = (typeof file !== 'string');
+
+      return new Promise(function (fulfill, reject) {
+        let depper = new SSDeps({
+          syntax: binary ? 'css' : 'scss'
+        });
+
+        depper.on('data', function (dep) {
+          dependencies.push(dep);
+        });
+
+        depper.on('missing', function (dep) {
+          dependencies.push(dep);
+        });
+
+        depper.on('finish', function () {
+          fulfill(dependencies);
+        });
+
+        if (binary) {
+          depper.inline(file, process.cwd());
+        }
+        else {
+          depper.write(file);
+        }
+
+        depper.end();
       });
-
-      depper.on('data', function (dep) {
-        dependencies.push(dep);
-      });
-
-      depper.on('missing', function (dep) {
-        dependencies.push(dep);
-      });
-
-      depper.on('finish', function () {
-        fulfill(dependencies);
-      });
-
-      if (binary) {
-        depper.inline(file, process.cwd());
-      }
-      else {
-        depper.write(file);
-      }
-
-      depper.end();
-    });
+    }
+    else {
+      return Promise.resolve(dependencies);
+    }
   }
 }
 
