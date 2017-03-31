@@ -21,7 +21,8 @@ test('render', function (t) {
         path.resolve('test/render/images/foo.png'),
         path.resolve('test/render/images/bar.png'),
         path.resolve('test/images/background-without-quote.png'),
-        path.resolve('test/images/background.png')
+        path.resolve('test/images/background.png'),
+        path.resolve('test/render/valid/foo.bar.scss')
       ].sort());
 
       t.equal(renderResult.binaries.length, 1);

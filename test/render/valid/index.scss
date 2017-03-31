@@ -2,6 +2,7 @@ $bootstrap-sass-asset-helper: false;
 
 @import "import/index";
 @import "import2.scss";
+@import "foo.bar";
 
 .foo {
   background: url("images/local-background.png");
