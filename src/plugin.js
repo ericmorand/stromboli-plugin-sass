@@ -40,8 +40,10 @@ class Plugin {
     let customImporter = function (url, prev, done) {
       let importPath = path.resolve(path.join(path.dirname(prev), url));
 
-      if (!path.extname(importPath)) {
-        importPath += '.scss';
+      let ext = '.scss';
+
+      if (path.extname(importPath) !== ext) {
+        importPath += ext;
       }
 
       let contents = '';
