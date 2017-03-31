@@ -31,7 +31,8 @@ class Plugin {
 
     let renderResult = {
       binaries: [],
-      dependencies: [],
+      binaryDependencies: [],
+      sourceDependencies: [],
       error: null
     };
 
@@ -98,7 +99,7 @@ class Plugin {
     return Promise.all([
       that.getDependencies(file).then(
         function (dependencies) {
-          renderResult.dependencies = dependencies;
+          renderResult.sourceDependencies = dependencies;
         }
       ),
       sassRender(sassConfig).then(
@@ -111,7 +112,7 @@ class Plugin {
             });
 
             rebaser.on('rebase', function (rebased) {
-              renderResult.dependencies.push(path.resolve(rebased));
+              renderResult.binaryDependencies.push(path.resolve(rebased));
             });
 
             let stream = new Readable();
