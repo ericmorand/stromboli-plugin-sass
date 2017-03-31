@@ -8,20 +8,23 @@ var cleanCSS = require('./_lib/clean-css');
 test('render', function (t) {
   var plugin = new Plugin();
 
-  t.plan(3);
+  t.plan(4);
 
   return plugin.render(path.resolve('test/render/valid/index.scss')).then(
     function (renderResult) {
-      t.same(renderResult.dependencies.sort(), [
-        path.resolve('test/render/valid/index.scss'),
-        path.resolve('test/render/valid/_import2.scss'),
-        path.resolve('test/render/valid/import/index.scss'),
+      t.same(renderResult.binaryDependencies.sort(), [
         path.resolve('test/render/valid/import/false.eot'),
         path.resolve('test/render/valid/images/local-background.png'),
         path.resolve('test/render/images/foo.png'),
         path.resolve('test/render/images/bar.png'),
         path.resolve('test/images/background-without-quote.png'),
-        path.resolve('test/images/background.png'),
+        path.resolve('test/images/background.png')
+      ].sort());
+
+      t.same(renderResult.sourceDependencies.sort(), [
+        path.resolve('test/render/valid/index.scss'),
+        path.resolve('test/render/valid/_import2.scss'),
+        path.resolve('test/render/valid/import/index.scss'),
         path.resolve('test/render/valid/foo.bar.scss')
       ].sort());
 
@@ -48,7 +51,7 @@ test('render with map', function (t) {
 
   return plugin.render(path.resolve('test/render/map/index.scss')).then(
     function (renderResult) {
-      t.equal(renderResult.dependencies.length, 1);
+      t.equal(renderResult.sourceDependencies.length, 1);
       t.equal(renderResult.binaries.length, 2);
     },
     function (err) {
@@ -68,7 +71,7 @@ test('render with embedded map', function (t) {
 
   return plugin.render(path.resolve('test/render/map/index.scss')).then(
     function (renderResult) {
-      t.equal(renderResult.dependencies.length, 1);
+      t.equal(renderResult.sourceDependencies.length, 1);
       t.equal(renderResult.binaries.length, 1);
     },
     function (err) {
@@ -84,7 +87,7 @@ test('render with outFile', function (t) {
 
   return plugin.render(path.resolve('test/render/map/index.scss'), 'custom.css').then(
     function (renderResult) {
-      t.equal(renderResult.dependencies.length, 1);
+      t.equal(renderResult.sourceDependencies.length, 1);
       t.equal(renderResult.binaries.length, 1);
       t.equal(renderResult.binaries[0].name, 'custom.css');
     },
@@ -104,7 +107,7 @@ test('render with outFile and map', function (t) {
 
   return plugin.render(path.resolve('test/render/map/index.scss'), 'custom.css').then(
     function (renderResult) {
-      t.equal(renderResult.dependencies.length, 1);
+      t.equal(renderResult.sourceDependencies.length, 1);
       t.equal(renderResult.binaries.length, 2);
       t.equal(renderResult.binaries[0].name, 'custom.css');
       t.equal(renderResult.binaries[1].name, 'custom.css.map');
@@ -118,12 +121,14 @@ test('render with outFile and map', function (t) {
 test('render with error in entry', function (t) {
   var plugin = new Plugin();
 
+  t.plan(3);
+
   return plugin.render(path.resolve('test/render/error/index.scss')).then(
     function (renderResult) {
       t.fail();
     },
     function (renderResult) {
-      t.same(renderResult.dependencies, [
+      t.same(renderResult.sourceDependencies, [
         path.resolve('test/render/error/index.scss')
       ]);
       t.equal(renderResult.error.file, path.resolve('test/render/error/index.scss'));
@@ -135,12 +140,14 @@ test('render with error in entry', function (t) {
 test('render with error in import', function (t) {
   var plugin = new Plugin();
 
+  t.plan(3);
+
   return plugin.render(path.resolve('test/render/error-in-import/index.scss')).then(
     function (renderResult) {
       t.fail();
     },
     function (renderResult) {
-      t.same(renderResult.dependencies, [
+      t.same(renderResult.sourceDependencies, [
         path.resolve('test/render/error-in-import/index.scss'),
         path.resolve('test/render/error-in-import/bar.scss')
       ]);
@@ -157,7 +164,7 @@ test('render with duplicate import', function (t) {
 
   return plugin.render(path.resolve('test/render/duplicate-import/index.scss')).then(
     function (renderResult) {
-      t.same(renderResult.dependencies.sort(), [
+      t.same(renderResult.sourceDependencies.sort(), [
         path.resolve('test/render/duplicate-import/index.scss'),
         path.resolve('test/render/duplicate-import/foo.scss')
       ].sort());
