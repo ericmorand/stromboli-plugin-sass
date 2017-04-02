@@ -9,7 +9,7 @@
   },
   "author": "Eric MORAND",
   "dependencies": {
-    "css-region-rebase": "^1.1.0",
+    "css-comment-rebase": "^1.1.0",
     "merge": "^1.2.0",
     "promise": "^7.1.1",
     "stylesheet-deps": "^1.1.0",
