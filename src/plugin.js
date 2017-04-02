@@ -21,7 +21,6 @@ class Plugin {
   render(file, output) {
     var that = this;
 
-
     const sass = require('node-sass');
     const sassRender = Promise.denodeify(sass.render);
 
@@ -64,7 +63,14 @@ class Plugin {
 
           importPath = path.join(dirname, basename);
 
-          contents = fs.readFileSync(importPath).toString();
+          try {
+            contents = fs.readFileSync(importPath).toString();
+          }
+          catch (err) {
+            // see https://github.com/sass/node-sass#importer--v200---experimental
+            // If an importer does not want to handle a particular path, it should return null
+            return null;
+          }
         }
 
         if (contents.length) {

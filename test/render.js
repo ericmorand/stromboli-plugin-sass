@@ -6,7 +6,9 @@ const fs = require('fs');
 var cleanCSS = require('./_lib/clean-css');
 
 test('render', function (t) {
-  var plugin = new Plugin();
+  var plugin = new Plugin({
+    sourceComments: true
+  });
 
   t.plan(4);
 
@@ -173,6 +175,27 @@ test('render with duplicate import', function (t) {
     },
     function (err) {
       t.fail(err);
+    }
+  );
+});
+
+test('render with missing import', function (t) {
+  var plugin = new Plugin();
+
+  t.plan(3);
+
+  return plugin.render(path.resolve('test/render/missing-import/entry.scss')).then(
+    function (renderResult) {
+      t.fail();
+    },
+    function (renderResult) {
+      t.same(renderResult.sourceDependencies, [
+        path.resolve('test/render/missing-import/entry.scss'),
+        path.resolve('test/render/missing-import/foo.scss'),
+        path.resolve('test/render/missing-import/_foo.scss')
+      ]);
+      t.equal(renderResult.error.file, path.resolve('test/render/missing-import/entry.scss'));
+      t.ok(renderResult.error.message);
     }
   );
 });
