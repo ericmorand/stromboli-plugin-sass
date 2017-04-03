@@ -1,7 +1,7 @@
 const fs = require('fs');
 const merge = require('merge');
 const path = require('path');
-const Rebaser = require('css-region-rebase');
+const Rebaser = require('css-source-map-rebase');
 const Readable = require('stream').Readable;
 const through = require('through2');
 
@@ -35,72 +35,13 @@ class Plugin {
       error: null
     };
 
-    let cache = new Map();
-
-    let customImporter = function (url, prev, done) {
-      let importPath = path.resolve(path.join(path.dirname(prev), url));
-
-      let ext = '.scss';
-
-      if (path.extname(importPath) !== ext) {
-        importPath += ext;
-      }
-
-      let contents = '';
-
-      if (!cache.has(importPath)) {
-        cache.set(importPath, true);
-
-        try {
-          contents = fs.readFileSync(importPath).toString();
-        }
-        catch (err) {
-          // try with an "_"
-          let basename = path.basename(importPath);
-          let dirname = path.dirname(importPath);
-
-          basename = '_' + basename;
-
-          importPath = path.join(dirname, basename);
-
-          try {
-            contents = fs.readFileSync(importPath).toString();
-          }
-          catch (err) {
-            // see https://github.com/sass/node-sass#importer--v200---experimental
-            // If an importer does not want to handle a particular path, it should return null
-            return null;
-          }
-        }
-
-        if (contents.length) {
-          let basePath = path.dirname(path.relative(path.resolve('.'), importPath)).replace(/\\/g, '/');
-
-          let contentsComponents = [
-            '/* region stromboli-plugin-sass: ' + basePath + ' */',
-            contents,
-            '/* endregion stromboli-plugin-sass: ' + basePath + ' */'
-          ];
-
-          contents = contentsComponents.join('');
-        }
-      }
-
-      return {
-        file: importPath,
-        contents: contents
-      };
-    };
-
-    let data = customImporter(path.relative(path.resolve('.'), file), '.');
-
     var sassConfig = merge.recursive({
-      file: data.file,
-      data: data.contents,
-      importer: customImporter
+      file: file,
+      sourceMapEmbed: true
     }, that.config);
 
     sassConfig.outFile = output;
+    sassConfig.sourceMap = true;
 
     return Promise.all([
       that.getDependencies(file).then(
@@ -114,7 +55,7 @@ class Plugin {
             let binary = '';
 
             let rebaser = new Rebaser({
-              format: 'stromboli-plugin-sass:'
+              map: sassRenderResult.map.toString()
             });
 
             rebaser.on('rebase', function (rebased) {

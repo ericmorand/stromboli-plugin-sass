@@ -43,10 +43,11 @@ test('render', function (t) {
   );
 });
 
-test('render with map', function (t) {
+test('render with external map', function (t) {
   var plugin = new Plugin({
     sourceMap: true,
-    sourceComments: true
+    sourceComments: true,
+    sourceMapEmbed: false
   });
 
   t.plan(2);
@@ -55,26 +56,6 @@ test('render with map', function (t) {
     function (renderResult) {
       t.equal(renderResult.sourceDependencies.length, 1);
       t.equal(renderResult.binaries.length, 2);
-    },
-    function (err) {
-      t.fail(err);
-    }
-  );
-});
-
-test('render with embedded map', function (t) {
-  var plugin = new Plugin({
-    sourceMap: true,
-    sourceComments: true,
-    sourceMapEmbed: true
-  });
-
-  t.plan(2);
-
-  return plugin.render(path.resolve('test/render/map/index.scss')).then(
-    function (renderResult) {
-      t.equal(renderResult.sourceDependencies.length, 1);
-      t.equal(renderResult.binaries.length, 1);
     },
     function (err) {
       t.fail(err);
@@ -99,10 +80,11 @@ test('render with outFile', function (t) {
   );
 });
 
-test('render with outFile and map', function (t) {
+test('render with outFile and external map', function (t) {
   var plugin = new Plugin({
     sourceMap: true,
-    sourceComments: true
+    sourceComments: true,
+    sourceMapEmbed: false
   });
 
   t.plan(4);
