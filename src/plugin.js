@@ -35,10 +35,7 @@ class Plugin {
       error: null
     };
 
-    var sassConfig = merge.recursive({
-      file: file,
-      sourceMapEmbed: true
-    }, that.config);
+    var sassConfig = that.getConfig(file);
 
     sassConfig.outFile = output;
     sassConfig.sourceMap = true;
@@ -135,6 +132,13 @@ class Plugin {
       depper.end();
     });
   }
+
+  getConfig(file) {
+    return merge.recursive(true, {
+      file: file,
+      sourceMapEmbed: true
+    }, this.config);
+  };
 }
 
 module.exports = Plugin;

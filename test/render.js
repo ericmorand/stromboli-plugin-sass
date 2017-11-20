@@ -181,3 +181,31 @@ test('render with missing import', function (t) {
     }
   );
 });
+
+test('render with file specific config', function (t) {
+  let file = path.resolve('test/render/file-specific-config/index.scss');
+  let data = `.foo {content: "${file}";}`;
+
+  class CustomPlugin extends Plugin {
+    getConfig(file) {
+      let config = super.getConfig(file);
+
+      config.data = data;
+
+      return config;
+    }
+  }
+
+  var plugin = new CustomPlugin();
+
+  t.plan(1);
+
+  plugin.render(file).then(
+    function (renderResult) {
+      t.equal(cleanCSS(renderResult.binaries[0].data), cleanCSS(data));
+    },
+    function (renderResult) {
+      t.fail();
+    }
+  );
+});
