@@ -27,7 +27,8 @@ test('render', function (t) {
         path.resolve('test/render/valid/index.scss'),
         path.resolve('test/render/valid/_import2.scss'),
         path.resolve('test/render/valid/import/index.scss'),
-        path.resolve('test/render/valid/foo.bar.scss')
+        path.resolve('test/render/valid/foo.bar'),
+        path.resolve('test/render/valid/_foo.bar')
       ].sort());
 
       t.equal(renderResult.binaries.length, 1);

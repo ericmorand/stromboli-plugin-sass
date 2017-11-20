@@ -11,8 +11,8 @@
   "dependencies": {
     "css-source-map-rebase": "^1.0.0",
     "merge": "^1.2.0",
-    "promise": "^7.1.1",
-    "stylesheet-deps": "^1.1.0",
+    "promise": "^8.0.1",
+    "stylesheet-deps": "^1.2.1",
     "through2": "^2.0.3"
   },
   "repository": "ericmorand/stromboli-plugin-sass",
